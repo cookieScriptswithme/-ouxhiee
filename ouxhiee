@@ -177,43 +177,6 @@ local function updateChams(character, enable)
 	end
 end
 
-RunService.RenderStepped:Connect(function()
-	pcall(function()
-		if FogConfig.Enabled then
-			Lighting.FogColor = FogConfig.Color
-			Lighting.FogStart = FogConfig.StartDistance
-			Lighting.FogEnd = FogConfig.EndDistance
-		end
-
-		for _, v in ipairs(Players:GetPlayers()) do
-			if v ~= localPlayer and v.Character then
-				local char = v.Character
-				local hrp = char:FindFirstChild("HumanoidRootPart")
-				local humanoid = char:FindFirstChildOfClass("Humanoid")
-				
-				if hrp and humanoid and humanoid.Health > 0 then
-					if HitboxConfig.Enabled then
-						if not originalSizes[char] then
-							originalSizes[char] = hrp.Size
-						end
-						hrp.Size = Vector3.new(HitboxConfig.Size, HitboxConfig.Size, HitboxConfig.Size)
-						hrp.Transparency = HitboxConfig.Transparency
-						hrp.Material = Enum.Material.ForceField
-						hrp.CanCollide = false
-					else
-						if originalSizes[char] and hrp.Size ~= originalSizes[char] then
-							hrp.Size = originalSizes[char]
-							hrp.Transparency = 1
-							hrp.CanCollide = true
-						end
-					end
-					updateChams(char, HitboxConfig.ChamsEnabled)
-				end
-			end
-		end
-	end)
-end)
-
 ----------------------------------------------------
 -- STARTUP CONFIRMATION PROMPT
 ----------------------------------------------------
@@ -284,12 +247,57 @@ noBtn.TextSize = 13
 noBtn.Parent = modalFrame
 local nc = Instance.new("UICorner"); nc.CornerRadius = UDim.new(0, 8); nc.Parent = noBtn
 
-noBtn.MouseButton1Click:Connect(function()
+local function launchHub(loadHitbox)
 	promptGui:Destroy()
-end)
 
-yesBtn.MouseButton1Click:Connect(function()
-	promptGui:Destroy()
+	if loadHitbox then
+		RunService.RenderStepped:Connect(function()
+			pcall(function()
+				if FogConfig.Enabled then
+					Lighting.FogColor = FogConfig.Color
+					Lighting.FogStart = FogConfig.StartDistance
+					Lighting.FogEnd = FogConfig.EndDistance
+				end
+
+				for _, v in ipairs(Players:GetPlayers()) do
+					if v ~= localPlayer and v.Character then
+						local char = v.Character
+						local hrp = char:FindFirstChild("HumanoidRootPart")
+						local humanoid = char:FindFirstChildOfClass("Humanoid")
+						
+						if hrp and humanoid and humanoid.Health > 0 then
+							if HitboxConfig.Enabled then
+								if not originalSizes[char] then
+									originalSizes[char] = hrp.Size
+								end
+								hrp.Size = Vector3.new(HitboxConfig.Size, HitboxConfig.Size, HitboxConfig.Size)
+								hrp.Transparency = HitboxConfig.Transparency
+								hrp.Material = Enum.Material.ForceField
+								hrp.CanCollide = false
+							else
+								if originalSizes[char] and hrp.Size ~= originalSizes[char] then
+									hrp.Size = originalSizes[char]
+									hrp.Transparency = 1
+									hrp.CanCollide = true
+								end
+							end
+							updateChams(char, HitboxConfig.ChamsEnabled)
+						end
+					end
+				end
+			end)
+		end)
+	else
+		RunService.RenderStepped:Connect(function()
+			pcall(function()
+				if FogConfig.Enabled then
+					Lighting.FogColor = FogConfig.Color
+					Lighting.FogStart = FogConfig.StartDistance
+					Lighting.FogEnd = FogConfig.EndDistance
+				end
+			end)
+		end)
+	end
 
 	----------------------------------------------------
 	-- MAIN HUB INITIALIZATION
@@ -433,20 +441,22 @@ yesBtn.MouseButton1Click:Connect(function()
 	end
 
 	----------------------------------------------------
-	-- WINDOW 1: HITBOX & CHAMS HUB (WITH SIZE ADJUSTER)
+	-- WINDOW 1: HITBOX & CHAMS HUB (ONLY IF YES)
 	----------------------------------------------------
-	local hitboxContainer = createWindow("★ MM2 FFA Hitbox", UDim2.new(0.02, 0, 0.25, 0), UDim2.new(0, 210, 0, 240), false)
-	addToggle(hitboxContainer, "Enable Hitbox", function(v) HitboxConfig.Enabled = v end)
-	addInput(hitboxContainer, "Hitbox Size", HitboxConfig.Size, function(val)
-		local num = tonumber(val)
-		if num then HitboxConfig.Size = num end
-	end)
-	addToggle(hitboxContainer, "Red Chams", function(v) HitboxConfig.ChamsEnabled = v end)
+	if loadHitbox then
+		local hitboxContainer = createWindow("★ MM2 FFA Hitbox", UDim2.new(0.02, 0, 0.25, 0), UDim2.new(0, 210, 0, 240), false)
+		addToggle(hitboxContainer, "Enable Hitbox", function(v) HitboxConfig.Enabled = v end)
+		addInput(hitboxContainer, "Hitbox Size", HitboxConfig.Size, function(val)
+			local num = tonumber(val)
+			if num then HitboxConfig.Size = num end
+		end)
+		addToggle(hitboxContainer, "Red Chams", function(v) HitboxConfig.ChamsEnabled = v end)
+	end
 
 	----------------------------------------------------
 	-- WINDOW 2: FOG CUSTOMIZER
 	----------------------------------------------------
-	local fogContainer = createWindow("★ Fog Customizer", UDim2.new(0.25, 0, 0.25, 0), UDim2.new(0, 210, 0, 320), false)
+	local fogContainer = createWindow("★ Fog Customizer", UDim2.new(loadHitbox and 0.25 or 0.02, 0, 0.25, 0), UDim2.new(0, 210, 0, 320), false)
 	addToggle(fogContainer, "Enable Fog", function(v) FogConfig.Enabled = v; applyFog() end)
 	addInput(fogContainer, "Thickness (10-300)", FogConfig.EndDistance, function(val) local num = tonumber(val) if num then FogConfig.EndDistance = num; applyFog() end end)
 	addInput(fogContainer, "Hex Color (#)", "#000000", function(val) local parsedColor = parseHex(val) if parsedColor then FogConfig.Color = parsedColor; applyFog() end end)
@@ -467,7 +477,7 @@ yesBtn.MouseButton1Click:Connect(function()
 	----------------------------------------------------
 	-- WINDOW 3: SCRIPT PANEL
 	----------------------------------------------------
-	local scriptContainer = createWindow("★ Script Panel", UDim2.new(0.48, 0, 0.25, 0), UDim2.new(0, 210, 0, 520), true)
+	local scriptContainer = createWindow("★ Script Panel", UDim2.new(loadHitbox and 0.48 or 0.25, 0, 0.25, 0), UDim2.new(0, 210, 0, 520), true)
 
 	-- Credit Banner Label
 	local creditLbl = Instance.new("TextLabel")
@@ -645,4 +655,12 @@ yesBtn.MouseButton1Click:Connect(function()
 
 	-- Trigger initial bottom-left notification
 	notifyOwnerCredit(screenGui)
+end
+
+yesBtn.MouseButton1Click:Connect(function()
+	launchHub(true)
+end)
+
+noBtn.MouseButton1Click:Connect(function()
+	launchHub(false)
 end)
