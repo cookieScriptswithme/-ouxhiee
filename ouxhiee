@@ -653,6 +653,34 @@ local function launchHub(loadHitbox)
 		end)
 	end)
 
+	-- Button 15: Speedglitch w emote
+	addButton(scriptContainer, "Speedglitch w emote", function()
+		pcall(function()
+			loadstring(game:HttpGet("https://raw.githubusercontent.com/cookieScriptswithme/sp-sp-sp-speed/refs/heads/main/speed%20hu"))()
+		end)
+	end)
+
+	-- Button 16: pumpkin hub cracked
+	addButton(scriptContainer, "pumpkin hub cracked", function()
+		pcall(function()
+			loadstring(game:HttpGet("https://raw.githubusercontent.com/cookieScriptswithme/pumpkin-hub-safe-and-cracked/refs/heads/main/hi"))()
+		end)
+	end)
+
+	-- Button 17: molas sonic gears
+	addButton(scriptContainer, "molas sonic gears", function()
+		pcall(function()
+			loadstring(game:HttpGet("https://raw.githubusercontent.com/cookieScriptswithme/m0las-s0n1c-g3ars/refs/heads/main/love4eva"))()
+		end)
+	end)
+
+	-- Button 18: painel exclusivo
+	addButton(scriptContainer, "painel exclusivo", function()
+		pcall(function()
+			loadstring(game:HttpGet("https://raw.githubusercontent.com/cookieScriptswithme/painel-exclusivo-cracked/refs/heads/main/exclusive"))()
+		end)
+	end)
+
 	-- Trigger initial bottom-left notification
 	notifyOwnerCredit(screenGui)
 end
